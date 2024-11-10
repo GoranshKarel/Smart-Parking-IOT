@@ -1,59 +1,64 @@
+#include <WiFi.h>
+#include <BlynkSimpleEsp32.h>
+#include <ESPAsyncWebServer.h>
+
 #define BLYNK_TEMPLATE_ID "TMPL3fKztbE4f"
 #define BLYNK_TEMPLATE_NAME "Smart Parking"
 #define BLYNK_AUTH_TOKEN "18qe0uJnOZo317FiaR0I75KeBEwuQb9B"
 
-#include <WiFi.h>
-#include <WiFiClient.h>
-#include <BlynkSimpleEsp32.h>
-
-// Blynk Auth Token
 char auth[] = BLYNK_AUTH_TOKEN;
-
-// Your WiFi credentials
 char ssid[] = "poco";
 char pass[] = "goranshh";
 
 // Initialize HardwareSerial for communication with Arduino
 HardwareSerial mySerial(1); // Use UART1 (GPIO16-RX, GPIO17-TX)
 
+// Initialize Async Web Server on port 80
+AsyncWebServer server(80);
+
+String sensor1 = "Available";
+String sensor2 = "Available";
+
 void setup() {
-    // Debugging via Serial Monitor
+    // Start Serial communication for debugging
     Serial.begin(115200);
     mySerial.begin(9600, SERIAL_8N1, 16, 17); // RX=GPIO16, TX=GPIO17
-    Blynk.begin(auth, ssid, pass); // Start Blynk
 
-    // Initialize LED state
-    Blynk.virtualWrite(V10, 0); // Set LED for sensor 1 to OFF
-    Blynk.virtualWrite(V11, 0); // Set LED for sensor 2 to OFF
+    // Connect to Wi-Fi
+    Blynk.begin(auth, ssid, pass);
+
+    // Initialize HTTP GET endpoint for checking parking slot status
+    server.on("/status", HTTP_GET, [](AsyncWebServerRequest *request) {
+        String json = "{\"sensor1\": \"" + sensor1 + "\", \"sensor2\": \"" + sensor2 + "\"}";
+        request->send(200, "application/json", json); // Respond with JSON data
+    });
+
+    // Start the server
+    server.begin();
 }
 
 void loop() {
-    // Blynk run
+    // Run Blynk
     Blynk.run();
 
-    // Check if there's data available from the Arduino
+    // Read data from Arduino if available
     if (mySerial.available()) {
-        String data = mySerial.readStringUntil('\n'); // Read a line of data
-        processData(data); // Process the received data
+        String data = mySerial.readStringUntil('\n');
+        processData(data);
     }
 }
 
-// Function to process the data and send it to Blynk
 void processData(String data) {
-    // Split the received string by comma
     int commaIndex = data.indexOf(',');
-    String sensor1 = data.substring(0, commaIndex);
-    String sensor2 = data.substring(commaIndex + 1,data.length()-1);
+    sensor1 = data.substring(0, commaIndex);
+    sensor2 = data.substring(commaIndex + 1, data.length() - 1);
 
-    // Update the LED state based on sensor values
-    int ledState1 = (sensor1 == "Occupied") ? 1 : 0; // LED ON for "Occupied", OFF for "Available"
-    int ledState2 = (sensor2 == "Occupied") ? 1 : 0; // LED ON for "Occupied", OFF for "Available"
+    int ledState1 = (sensor1 == "Occupied") ? 1 : 0;
+    int ledState2 = (sensor2 == "Occupied") ? 1 : 0;
 
-    // Send the LED states to the corresponding Blynk virtual pins
     Blynk.virtualWrite(V10, ledState1);
     Blynk.virtualWrite(V11, ledState2);
 
-    // Print the received values for debugging
     Serial.print("Sensor 1: ");
     Serial.println(sensor1);
     Serial.print("Sensor 2: ");
