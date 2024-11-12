@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Parking Status</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      background-color: #f0f4f8;
+      margin: 0;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      border-radius: 8px;
+      background-color: #fff;
+      box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+      width: 90%;
+      max-width: 400px;
+    }
+    h1 {
+      color: #333;
+      text-align: center;
+    }
+    .slot-status {
+      margin: 10px 0;
+      font-size: 1.2em;
+      color: #555;
+    }
+    .button {
+      padding: 10px 20px;
+      margin: 5px;
+      font-size: 1em;
+      border: none;
+      color: #fff;
+      background-color: #007bff;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    .button:hover {
+      background-color: #0056b3;
+    }
+    .json-display {
+      margin-top: 20px;
+      padding: 10px;
+      border-radius: 5px;
+      background-color: #e9ecef;
+      font-family: monospace;
+      color: #333;
+      max-width: 100%;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Smart Parking System</h1>
+
+  <!-- Parking Slot Status -->
+  <div id="slot1-status" class="slot-status">Slot 1: Available</div>
+  <div id="slot2-status" class="slot-status">Slot 2: Available</div>
+
+  <!-- Buttons to Toggle Slot Status -->
+  <button class="button" onclick="toggleSlot('slot1')">Toggle Slot 1</button>
+  <button class="button" onclick="toggleSlot('slot2')">Toggle Slot 2</button>
+
+  <!-- JSON Display -->
+  <h2>JSON Data</h2>
+  <div id="json-display" class="json-display"></div>
+</div>
+
+<script>
+  // Initial slot status data
+  let parkingStatus = {
+    slot1: "Available",
+    slot2: "Available"
+  };
+
+  // Function to toggle slot status
+  function toggleSlot(slot) {
+    // Toggle status between "Available" and "Occupied"
+    parkingStatus[slot] = parkingStatus[slot] === "Available" ? "Occupied" : "Available";
+
+    // Update displayed status on the webpage
+    document.getElementById(`${slot}-status`).textContent = `${slot.charAt(0).toUpperCase() + slot.slice(1)}: ${parkingStatus[slot]}`;
+    
+    // Update JSON display
+    updateJSONDisplay();
+  }
+
+  // Function to update the JSON display
+  function updateJSONDisplay() {
+    // Display JSON data in pretty format
+    const jsonDisplay = document.getElementById("json-display");
+    jsonDisplay.textContent = JSON.stringify(parkingStatus, null, 2);
+  }
+
+  // Initialize JSON display on page load
+  updateJSONDisplay();
+</script>
+
+</body>
+</html>
